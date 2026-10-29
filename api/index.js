@@ -5,8 +5,12 @@ import session from "express-session"
 import MongoStore from "connect-mongo";
 import mongoose from "mongoose"
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 3000
 const MONGODB_URL = process.env.MONGODB_URL
+const SESSION_SECRET = process.env.SESSION_SECRET
+
+if (!MONGODB_URL || !SESSION_SECRET)
+    throw new Error("Missing MONGODB_URL or SESSION_SECRET")
 
 const app = express()
 app.use(express.json()) 
@@ -15,13 +19,21 @@ mongoose.connect(MONGODB_URL)
     .then(() => console.log("Connected to Database"))
     .catch((err) => console.log(`Error: ${err}`))
 
+app.set("trust proxy", 1)
+
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: MongoStore.create({
-        client: mongoose.connection.getClient()
-    })
+        mongoUrl: MONGODB_URL
+    }),
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+    }
 }));
 
 app.use(routes)
