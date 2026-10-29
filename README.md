@@ -74,4 +74,3 @@ const res = await fetch("https://langchainexpresstaxation-1.onrender.com/api/ask
 
 const data = await res.json();
 console.log(data.answer);
-```
