@@ -12,3 +12,5 @@ faiss-cpu
 langgraph
 langserve[all]==0.3.*
 uvicorn
+fonttools
+langchain-huggingface
