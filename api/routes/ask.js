@@ -1,7 +1,9 @@
+import "dotenv/config";
 import Router from "express"
 import { body, validationResult } from "express-validator"
 
 const router = Router()
+const URL = process.env.lANGCHAIN_API_URL
 
 router.post("/api/ask", 
     body("question")
@@ -15,12 +17,12 @@ router.post("/api/ask",
             return res.status(400).send({ errors: errors.array() })
 
         try {
-            const langChainAPI = await fetch("http://localhost:8000/ask", {
+            const langChainAPI = await fetch(URL, {
                 method: "POST",
                 headers: {
                     "content-type": "application/json"
                 },
-                body: JSON.stringify({ question: req.body.question })
+                body: JSON.stringify({ question: req.body.question, session_id: req.sessionID })
             })
 
             if(!langChainAPI.ok)

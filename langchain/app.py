@@ -2,11 +2,12 @@ from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
 from pydantic import BaseModel
 from langchain_groq import ChatGroq
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from operator import itemgetter
 
 load_dotenv(find_dotenv())
 
@@ -21,6 +22,7 @@ prompt = ChatPromptTemplate.from_messages([
      "You answer questions about Nigerian tax law using only the context below. "
      "If the context does not contain the answer, say you don't know. "
      "Context: {context}"),
+     MessagesPlaceholder("chat_history"),
     ("human", "{question}"),
 ])
 
@@ -29,19 +31,31 @@ def format_docs(docs):
 
 chain = (
     {
-        "context": retriever | format_docs, 
-        "question": RunnablePassthrough()
+        "context": itemgetter("question") | retriever | format_docs, 
+        "question": itemgetter("question"),
+        "chat_history": itemgetter("chat_history")
     }
     | prompt 
     | model 
     | StrOutputParser()
 )
 
+sessions = {}
+MAX_TURNS = 3
+
+def chat(session_id, question):
+    history = sessions.get(session_id, [])
+    answer = chain.invoke({"question": question, "chat_history": history})
+    history = history + [("human", question), ("ai", answer)]
+    sessions[session_id] = history[-MAX_TURNS * 2:]
+    return answer
+
 app = FastAPI()
 
 class Ask(BaseModel):
     question: str
+    session_id: str = "default"
 
 @app.post("/ask")
 def ask(body: Ask):
-    return {"answer": chain.invoke(body.question)}
+    return {"answer": chat(body.session_id, body.question)}
