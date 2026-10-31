@@ -4,7 +4,6 @@ import { body, validationResult } from "express-validator"
 import { ask } from "../src/lib/rag.js"
 
 const router = Router()
-const URL = process.env.lANGCHAIN_API_URL
 
 router.post("/api/ask", 
     body("question")

@@ -2,7 +2,6 @@ import "dotenv/config"
 import { ChatGroq } from "@langchain/groq"
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts"
 import { StringOutputParser } from "@langchain/core/output_parsers"
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai"
 import { loadStore  } from "./store.js"
 
 const chatModel = new ChatGroq({
@@ -39,8 +38,6 @@ const MAX_TURNS = 3
 export async function ask(question, sessionID = "default") {
     const docs = await retrieval.invoke(question)
     const context = docs.map((d) => d.pageContent).join("\n\n")
-    console.log("Q:", question)
-    docs.forEach(d => console.log("-", d.metadata.source.split("\\").pop(), "p" + d.metadata.loc?.pageNumber, d.pageContent.slice(0, 120).replace(/\s+/g, " ")))
 
     const history = histories.get(sessionID) ?? []
     
