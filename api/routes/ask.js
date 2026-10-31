@@ -1,6 +1,7 @@
 import "dotenv/config";
 import Router from "express"
 import { body, validationResult } from "express-validator"
+import { ask } from "../src/lib/rag.js"
 
 const router = Router()
 const URL = process.env.lANGCHAIN_API_URL
@@ -16,21 +17,14 @@ router.post("/api/ask",
         if(!errors.isEmpty())
             return res.status(400).send({ errors: errors.array() })
 
+        const { question } = req.body
+        const { sessionID } = req
+
         try {
-            const langChainAPI = await fetch(URL, {
-                method: "POST",
-                headers: {
-                    "content-type": "application/json"
-                },
-                body: JSON.stringify({ question: req.body.question, session_id: req.sessionID })
-            })
-
-            if(!langChainAPI.ok)
-                throw new Error("LANGCHAIN AI ERROR")
-
-            const langChainAPIResponse = await langChainAPI.json()
-            return res.json(langChainAPIResponse)
+            const results = await ask(question, sessionID)
+            return res.json(results)
         } catch(err) {
+            console.error(err)
             res.status(502).json({ err: "Could not get an answer right now" });
         }
     }

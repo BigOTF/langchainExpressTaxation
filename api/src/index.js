@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express"
-import routes from "./routes/index.js"
+import routes from "../routes/index.js"
 import session from "express-session"
 import MongoStore from "connect-mongo";
 import mongoose from "mongoose"
