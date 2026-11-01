@@ -1,13 +1,15 @@
 import "dotenv/config"
 import fs from "fs"
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf"
+import { TextLoader } from "@langchain/classic/document_loaders/fs/text"
 import { DirectoryLoader } from "@langchain/classic/document_loaders/fs/directory"
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters"
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai"
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory"
 
 const loader = new DirectoryLoader("./data", {
-    ".pdf": (path) => new PDFLoader(path)
+    ".pdf": (path) => new PDFLoader(path),
+    ".md": (path) => new TextLoader(path)
 })
 
 const loadedPDFs = await loader.load()
