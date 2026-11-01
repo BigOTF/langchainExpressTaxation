@@ -40,6 +40,7 @@ const chain = chatPrompt.pipe(chatModel).pipe(strOutputParser)
 
 const histories = new Map()
 const MAX_TURNS = 3
+const fileName = (p) => String(p).split(/[\\/]/).pop()
 
 async function rewriteQuery(question, history) {
     const recent = history
@@ -93,7 +94,7 @@ export async function ask(question, sessionID = "default") {
     return {
         answer,
         sources: docs.map((d) => ({
-            file: path.basename(d.metadata.source),
+           file: fileName(d.metadata.source),
             page: d.metadata.loc?.pageNumber
         }))
     }
